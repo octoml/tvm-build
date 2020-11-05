@@ -1,0 +1,13 @@
+[package]
+name = "tvm-build"
+version = "0.1.0"
+authors = ["Jared Roesch <jroesch@octoml.ai>"]
+edition = "2018"
+
+[dependencies]
+git2 = "0.13"
+thiserror = "*"
+tempfile = "3"
+tracing = "0.1"
+tracing-subscriber = "0.2"
+cmake = "0.1.44"
