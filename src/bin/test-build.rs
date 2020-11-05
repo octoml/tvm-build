@@ -3,14 +3,7 @@ use tracing_subscriber;
 
 fn main() {
     tracing_subscriber::fmt::init();
-
-    let config = BuildConfig {
-        repository: None,
-        repository_path: None,
-        branch: None,
-        clean: false,
-        output_path: None,
-    };
-
+    let mut config = BuildConfig::default();
+    config.verbose = true;
     build(config).unwrap();
 }
