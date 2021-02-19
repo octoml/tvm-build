@@ -31,13 +31,18 @@ pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core:
         std::fs::create_dir_all(build_path.clone()).unwrap();
     }
 
-    let dst = cmake_config
+    let config = cmake_config
         .generator("Unix Makefiles")
         .out_dir(build_path.clone())
         .very_verbose(true)
         .target(&target.target_str)
         .host(&target.host)
-        .profile("Debug")
+        .profile("Debug");
+
+    // M1 only config
+    config.define("CMAKE_OSX_ARCHITECTURES", "arm64");
+
+    config
         .build();
 
     // info!(target = target.target_str);
