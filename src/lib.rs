@@ -14,16 +14,17 @@ pub use self::core::BuildConfig;
 #[tracing::instrument]
 pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core::Error> {
     info!("tvm_build::build");
-    let repo_path = core::init_tvm_build_dir(&build_config)?;
-
-    let mut cmake_config = cmake::Config::new(repo_path.clone());
+    let rev_path = core::init_tvm_build_dir(&build_config)?;
+    let source_path = rev_path.join("source");
+    let build_path = rev_path.join("build");
+    let mut cmake_config = cmake::Config::new(source_path.clone());
 
     let target = local_target();
 
     // TODO(@jroesch): map this to target triple based target directory
     // should probably be target + host + profile.
     let build_path = match build_config.output_path {
-        None => repo_path.join("..").join("build"),
+        None => build_path,
         _ => panic!(),
     };
 
