@@ -54,14 +54,13 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<PathBuf, Error> 
 
     let branch = build_config.branch.clone().unwrap_or(DEFAULT_BRANCH.into());
 
-    let repo_path: PathBuf = match &build_config.repository_path {
+    let revision_path: PathBuf = match &build_config.repository_path {
         Some(path) => std::path::Path::new(&path).into(),
         // todo: check that the provided path exists
         None => {
             let mut home_dir = dirs::home_dir().expect("requires a home directory");
             home_dir = home_dir.join(".tvm_build");
             home_dir = home_dir.join(&branch);
-            home_dir = home_dir.join("source");
             home_dir
         }
     };
@@ -69,13 +68,14 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<PathBuf, Error> 
     // If a user specifies the repository directory we assume we
     // don't own it and won't clean it.
     if build_config.clean && build_config.repository_path.is_none() {
-        std::fs::remove_dir_all(&repo_path).unwrap();
+        std::fs::remove_dir_all(&revision_path).unwrap();
     }
 
-    if !repo_path.exists() {
+    if !revision_path.exists() {
         let mut repo_builder = RepoBuilder::new();
         repo_builder.branch(&branch);
 
+        let repo_path = revision_path.join("source");
         let repo = match repo_builder.clone(&repository_url, &repo_path) {
             Ok(repo) => repo,
             Err(e) => panic!("failed to clone: {}", e),
@@ -86,5 +86,5 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<PathBuf, Error> 
         }
     }
 
-    Ok(repo_path)
+    Ok(revision_path)
 }
