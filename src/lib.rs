@@ -50,6 +50,6 @@ pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core:
     // info!(dst = dst.display().to_string());
 
     Ok(core::BuildResult  {
-        revision_path: build_path,
+        revision_path: rev_path,
     })
 }
