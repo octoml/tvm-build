@@ -39,9 +39,7 @@ impl std::default::Default for BuildConfig  {
 }
 
 pub struct BuildResult {
-    pub python_libraries: PathBuf,
-    pub tvm_runtime_shared_library: PathBuf,
-    pub tvm_compiler_shared_library: PathBuf,
+    pub revision_path: PathBuf,
 }
 
 pub fn make_target_directory(output_path: &Path) -> std::io::Result<()> {
