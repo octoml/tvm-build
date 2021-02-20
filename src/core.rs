@@ -1,4 +1,4 @@
-use std::{iter::Rev, path::{Path, PathBuf}};
+use std::path::{PathBuf};
 
 use git2::build::RepoBuilder;
 use thiserror::Error;
@@ -15,6 +15,8 @@ const DEFAULT_BRANCH: &'static str = "main";
 pub enum Error {
     #[error("{0}")]
     Git2(#[from] git2::Error),
+    #[error("{0}")]
+    IoError(#[from] std::io::Error),
 }
 
 #[derive(Debug)]
@@ -44,41 +46,14 @@ pub struct Revision {
     revision: String
 }
 
-
 // convert to lazy<T>?
 fn tvm_build_directory() -> PathBuf {
     let home_dir = dirs::home_dir().expect("requires a home directory");
     home_dir.join(".tvm_build")
 }
 
-impl Revision {
-    pub fn new(revision: String) -> Revision {
-        Revision { revision }
-    }
-
-    pub fn path(&self) -> PathBuf {
-        tvm_build_directory().join(&self.revision)
-    }
-
-    pub fn source_path(&self) -> PathBuf {
-        self.path().join("source")
-    }
-
-    pub fn build_path(&self) -> PathBuf {
-        self.path().join("build")
-    }
-}
-
-pub struct BuildResult {
-    pub revision: Revision,
-}
-
-pub fn make_target_directory(output_path: &Path) -> std::io::Result<()> {
-    Ok(())
-}
-
 // TODO: split per revision
-pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<Revision, Error> {
+pub fn get_revision(build_config: &BuildConfig) -> Result<Revision, Error> {
     info!("tvm_build::build");
     let repository_url =
         build_config.repository.clone().unwrap_or(TVM_REPO.into());
@@ -97,7 +72,7 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<Revision, Error>
     // If a user specifies the repository directory we assume we
     // don't own it and won't clean it.
     if build_config.clean && build_config.repository_path.is_none() {
-        std::fs::remove_dir_all(&revision_path).unwrap();
+        std::fs::remove_dir_all(&revision_path)?;
     }
 
     if !revision_path.exists() {
@@ -110,38 +85,57 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<Revision, Error>
             Err(e) => panic!("failed to clone: {}", e),
         };
 
-        let submodules = repo.submodules().unwrap();
+        let submodules = repo.submodules()?;
         for mut submodule in submodules {
-            submodule.update(true, None).unwrap();
+            submodule.update(true, None)?;
         }
     }
 
     Ok(revision)
 }
 
-pub fn build_revision(revision: &Revision, target: Target) -> Result<(), Error> {
-    let source_path = revision.source_path();
-    let build_path = revision.build_path();
-
-    if !build_path.exists() {
-        std::fs::create_dir_all(build_path.clone()).unwrap();
+impl Revision {
+    pub fn new(revision: String) -> Revision {
+        Revision { revision }
     }
 
-    let mut cmake_config = cmake::Config::new(source_path.clone());
+    pub fn path(&self) -> PathBuf {
+        tvm_build_directory().join(&self.revision)
+    }
 
-    let config = cmake_config
-        .generator("Unix Makefiles")
-        .out_dir(build_path.clone())
-        .very_verbose(true)
-        .target(&target.target_str)
-        .host(&target.host)
-        .profile("Debug");
+    pub fn source_path(&self) -> PathBuf {
+        self.path().join("source")
+    }
 
-    // M1 only config
-    config.define("CMAKE_OSX_ARCHITECTURES", "arm64");
+    pub fn build_path(&self) -> PathBuf {
+        self.path().join("build")
+    }
 
-    config
-        .build();
+    pub fn build_for(&self, target: Target) -> Result<(), Error> {
+        let source_path = self.source_path();
+        let build_path = self.build_path();
 
-    Ok(())
+        if !build_path.exists() {
+            std::fs::create_dir_all(build_path.clone())?;
+        }
+
+        let mut cmake_config = cmake::Config::new(source_path.clone());
+
+        let config = cmake_config
+            .generator("Unix Makefiles")
+            .out_dir(build_path.clone())
+            .very_verbose(true)
+            .target(&target.target_str)
+            .host(&target.host)
+            .profile("Debug");
+
+        config
+            .build();
+
+        Ok(())
+    }
+}
+
+pub struct BuildResult {
+    pub revision: Revision,
 }

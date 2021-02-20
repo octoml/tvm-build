@@ -1,24 +1,26 @@
-mod linux;
-mod macos;
 mod target;
-mod windows;
 
 pub use target::Target;
 
 pub fn local_target() -> Target {
-    match std::env::consts::OS {
-        "macos" => {
-        Target { host: "Darwin".into(), target_str: "arm64-apple-darwin20.3.0".into() }
-        },
-        _ => {
-            panic!("Platform {} unsupported, please check the issue tracker.", std::env::consts::OS);
-        }
+    let platform = futures::executor::block_on(heim::host::platform()).unwrap();
+    match platform.system() {
+       "Darwin" => {
+            let cmake_defines = match platform.architecture() {
+                heim::host::Arch::Unknown | heim::host::Arch::AARCH64 => {
+                    vec![("CMAKE_OSX_ARCHITECTURES".into(), "arm64".into())]
+                },
+                _ => vec![]
+            };
+
+            Target {
+                host: "Darwin".into(),
+                target_str: "arm64-apple-darwin".into(),
+                cmake_defines,
+            }
+       },
+       _ => {
+           panic!("Platform `{}` unsupported, please check the issue tracker.", platform.system());
+       }
     }
 }
-
-// #[cfg(target_os = "macos")]
-// pub mod macos;
-// #[cfg(target_os = "linux")]
-// static DEFAULT_PATH: &str = "path0";
-// #[cfg(target_os = "windows")]
-// static DEFAULT_PATH: &str = "path1";

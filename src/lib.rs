@@ -1,7 +1,4 @@
-use std::path::{Path, PathBuf};
-
 use tracing::{self, info};
-use cmake;
 
 mod core;
 mod targets;
@@ -14,7 +11,7 @@ pub use self::core::BuildConfig;
 #[tracing::instrument]
 pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core::Error> {
     info!("tvm_build::build");
-    let rev = core::init_tvm_build_dir(&build_config)?;
+    let rev = core::get_revision(&build_config)?;
     let target = local_target();
 
     // TODO(@jroesch): map this to target triple based target directory
@@ -24,7 +21,7 @@ pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core:
         _ => panic!("this option is currently disabled"),
     };
 
-    core::build_revision(&rev, target)?;
+    rev.build_for(target)?;
 
     // info!(target = target.target_str);
     // info!(dst = dst.display().to_string());

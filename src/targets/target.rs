@@ -4,4 +4,5 @@
 pub struct Target {
     pub host: String,
     pub target_str: String,
+    pub cmake_defines: Vec<(String, String)>,
 }
