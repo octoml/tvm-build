@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use tvm_build::{build, BuildConfig};
 use tracing_subscriber;
 use structopt::StructOpt;
@@ -21,28 +19,13 @@ struct UninstallCommand {
     revision: String,
 }
 
-
 #[derive(StructOpt, Debug)]
 #[structopt(about = "A CLI for maintaining TVM installations.")]
 enum TVMBuildArgs {
     /// Install a revision of TVM locally.
     Install(InstallCommand),
+    /// Remove a revision of TVM.
     Uninstall(UninstallCommand),
-    Compile {
-        input_file: PathBuf,
-        // #[structopt(long)]
-        // dry_run: bool,
-        // #[structopt(long)]
-        // all: bool,
-        // repository: Option<String>
-    },
-    Pkg {
-        input_model: PathBuf,
-        #[structopt(short)]
-        message: Option<String>,
-        #[structopt(short)]
-        all: bool
-    }
 }
 
 
@@ -59,7 +42,7 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         },
         _ => {
-            panic!()
+            panic!("Command not yet supported")
         }
     }
 }
