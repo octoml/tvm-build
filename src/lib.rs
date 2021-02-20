@@ -15,9 +15,6 @@ pub use self::core::BuildConfig;
 pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core::Error> {
     info!("tvm_build::build");
     let rev = core::init_tvm_build_dir(&build_config)?;
-    let source_path = rev.source_path();
-    let build_path = rev.build_path();
-
     let target = local_target();
 
     // TODO(@jroesch): map this to target triple based target directory
