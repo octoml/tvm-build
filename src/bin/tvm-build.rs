@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
             config.verbose = true;
             config.branch = Some(install_cmd.revision);
             config.clean = install_cmd.clean;
-            build(config).unwrap();
+            build(config)?;
             Ok(())
         },
         _ => {

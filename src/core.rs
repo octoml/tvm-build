@@ -17,6 +17,8 @@ pub enum Error {
     Git2(#[from] git2::Error),
     #[error("{0}")]
     IoError(#[from] std::io::Error),
+    #[error("the directory does not exist: {0}")]
+    DirectoryNotFound(String),
 }
 
 #[derive(Debug)]
@@ -71,7 +73,8 @@ pub fn get_revision(build_config: &BuildConfig) -> Result<Revision, Error> {
 
     // If a user specifies the repository directory we assume we
     // don't own it and won't clean it.
-    if build_config.clean && build_config.repository_path.is_none() {
+    if revision_path.exists() && build_config.clean && build_config.repository_path.is_none() {
+        // This fails if doesn't exist
         std::fs::remove_dir_all(&revision_path)?;
     }
 
@@ -117,6 +120,9 @@ impl Revision {
 
         if !build_path.exists() {
             std::fs::create_dir_all(build_path.clone())?;
+                // .map_err
+                // Err(err) =>
+                // .context(format!("the build directory does not exist: {:?}", build_path))?;
         }
 
         let mut cmake_config = cmake::Config::new(source_path.clone());
