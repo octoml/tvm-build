@@ -122,6 +122,11 @@ pub fn init_tvm_build_dir(build_config: &BuildConfig) -> Result<Revision, Error>
 pub fn build_revision(revision: &Revision, target: Target) -> Result<(), Error> {
     let source_path = revision.source_path();
     let build_path = revision.build_path();
+
+    if !build_path.exists() {
+        std::fs::create_dir_all(build_path.clone()).unwrap();
+    }
+
     let mut cmake_config = cmake::Config::new(source_path.clone());
 
     let config = cmake_config

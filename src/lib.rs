@@ -27,10 +27,6 @@ pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core:
         _ => panic!("this option is currently disabled"),
     };
 
-    if !build_path.exists() {
-        std::fs::create_dir_all(build_path.clone()).unwrap();
-    }
-
     core::build_revision(&rev, target)?;
 
     // info!(target = target.target_str);
