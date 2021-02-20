@@ -3,7 +3,7 @@ mod macos;
 mod target;
 mod windows;
 
-use target::Target;
+pub use target::Target;
 
 pub fn local_target() -> Target {
     match std::env::consts::OS {
