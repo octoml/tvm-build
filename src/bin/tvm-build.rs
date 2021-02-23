@@ -11,6 +11,8 @@ struct InstallCommand {
     debug: bool,
     #[structopt(short, long)]
     clean: bool,
+    #[structopt(short, long)]
+    verbose: bool,
 }
 
 #[derive(StructOpt, Debug)]
@@ -39,6 +41,7 @@ fn main() -> anyhow::Result<()> {
             config.branch = Some(install_cmd.revision);
             config.clean = install_cmd.clean;
             config.repository = install_cmd.repository;
+            config.verbose = install_cmd.verbose;
             build(config)?;
             Ok(())
         },
