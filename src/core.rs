@@ -122,7 +122,7 @@ impl Revision {
         self.path().join("build")
     }
 
-    pub fn build_for(&self, target: Target) -> Result<(), Error> {
+    pub fn build_for(&self, build_config: &BuildConfig, target: Target) -> Result<(), Error> {
         let source_path = self.source_path();
         let build_path = self.build_path();
 
@@ -133,17 +133,21 @@ impl Revision {
                 // .context(format!("the build directory does not exist: {:?}", build_path))?;
         }
 
-        let mut cmake_config = cmake::Config::new(source_path.clone());
+        let mut cmake_config =
+            cmake::Config::new(source_path.clone());
 
-        let config = cmake_config
-            .generator("Unix Makefiles")
-            .out_dir(build_path.clone())
-            .very_verbose(true)
+        cmake_config
+                .generator("Unix Makefiles")
+                .out_dir(build_path.clone())
             .target(&target.target_str)
             .host(&target.host)
             .profile("Debug");
 
-        config
+        if build_config.verbose {
+            cmake_config.very_verbose(true);
+        }
+
+        cmake_config
             .build();
 
         Ok(())

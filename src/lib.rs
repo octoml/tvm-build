@@ -21,7 +21,7 @@ pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core:
         _ => panic!("this option is currently disabled"),
     };
 
-    rev.build_for(target)?;
+    rev.build_for(&build_config, target)?;
 
     // info!(target = target.target_str);
     // info!(dst = dst.display().to_string());
