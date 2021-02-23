@@ -12,14 +12,14 @@ There exists some duplicate functionality across the many pieces of the stack, b
 to mimic the ease of use enjoyed by tools such as `pyenv` and `rbenv`.
 
 Currently the easiest way to get started is to install the tool directly from Cargo using:
-```
+```bash
 cargo install tvm-build
 ```
 
 Once installed you can see available commands by running `tvm-build --help`.
 
 For programmatic use you can perform a minimal build using the below code:
-```
+```rust
 let mut build_config = BuildConfig::default();
 build_config.repository = Some("https://github.com/jroesch/tvm".to_string());
 build_config.branch = Some("rust-tvm-build".to_string());
