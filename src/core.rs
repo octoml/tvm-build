@@ -19,6 +19,8 @@ pub enum Error {
     IoError(#[from] std::io::Error),
     #[error("the directory does not exist: {0}")]
     DirectoryNotFound(String),
+    #[error("the requested revision ({revision}) and repository ({repository}) combination does not exist.")]
+    RevisionNotFound { revision: String, repository: String, },
 }
 
 #[derive(Debug)]
@@ -78,15 +80,21 @@ pub fn get_revision(build_config: &BuildConfig) -> Result<Revision, Error> {
         std::fs::remove_dir_all(&revision_path)?;
     }
 
-    if !revision_path.exists() {
+    if !revision.source_path().exists() {
         let mut repo_builder = RepoBuilder::new();
         repo_builder.branch(&revision.revision);
 
         let repo_path = revision_path.join("source");
         let repo = match repo_builder.clone(&repository_url, &repo_path) {
-            Ok(repo) => repo,
-            Err(e) => panic!("failed to clone: {}", e),
-        };
+            Ok(repo) => Ok(repo),
+            Err(e) => Err(match e.code() {
+                git2::ErrorCode::NotFound => Error::RevisionNotFound {
+                    repository: repository_url,
+                    revision: revision.revision.clone(),
+                },
+                _ => e.into(),
+            })
+        }?;
 
         let submodules = repo.submodules()?;
         for mut submodule in submodules {

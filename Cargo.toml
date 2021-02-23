@@ -1,17 +1,16 @@
 [package]
 name = "tvm-build"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jared Roesch <jroesch@octoml.ai>"]
 edition = "2018"
 description = "A CLI and library for programmatically building TVM."
 license = "Apache-2.0"
-license-file = "LICENSE"
 homepage = "https://tvm.ai"
 repository = "https://github.com/octoml/tvm-build"
 
 [dependencies]
 git2 = "0.13"
-thiserror = "*"
+thiserror = "1.0"
 tempfile = "3"
 tracing = "0.1"
 tracing-subscriber = "0.2"
