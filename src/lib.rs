@@ -11,7 +11,7 @@ pub use self::core::BuildConfig;
 #[tracing::instrument]
 pub fn build(build_config: core::BuildConfig) -> Result<core::BuildResult, core::Error> {
     info!("tvm_build::build");
-    let rev = core::get_revision(&build_config)?;
+    let rev = build_config.get_revision()?;
     let target = local_target();
 
     // TODO(@jroesch): map this to target triple based target directory

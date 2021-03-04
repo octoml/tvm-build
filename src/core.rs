@@ -56,53 +56,55 @@ fn tvm_build_directory() -> PathBuf {
     home_dir.join(".tvm_build")
 }
 
-// TODO: split per revision
-pub fn get_revision(build_config: &BuildConfig) -> Result<Revision, Error> {
-    info!("tvm_build::build");
-    let repository_url =
-        build_config.repository.clone().unwrap_or(TVM_REPO.into());
+impl BuildConfig {
+    // TODO: split per revision
+    pub fn get_revision(&self) -> Result<Revision, Error> {
+        info!("tvm_build::build");
+        let repository_url =
+            self.repository.clone().unwrap_or(TVM_REPO.into());
 
-    let branch = build_config.branch.clone().unwrap_or(DEFAULT_BRANCH.into());
-    let revision = Revision::new(branch);
+        let branch = self.branch.clone().unwrap_or(DEFAULT_BRANCH.into());
+        let revision = Revision::new(branch);
 
-    let revision_path = match &build_config.repository_path {
-        Some(path) => std::path::Path::new(&path).into(),
-        // todo: check that the provided path exists
-        None => {
-            revision.path()
+        let revision_path = match &self.repository_path {
+            Some(path) => std::path::Path::new(&path).into(),
+            // todo: check that the provided path exists
+            None => {
+                revision.path()
+            }
+        };
+
+        // If a user specifies the repository directory we assume we
+        // don't own it and won't clean it.
+        if revision_path.exists() && self.clean && self.repository_path.is_none() {
+            // This fails if doesn't exist
+            std::fs::remove_dir_all(&revision_path)?;
         }
-    };
 
-    // If a user specifies the repository directory we assume we
-    // don't own it and won't clean it.
-    if revision_path.exists() && build_config.clean && build_config.repository_path.is_none() {
-        // This fails if doesn't exist
-        std::fs::remove_dir_all(&revision_path)?;
-    }
+        if !revision.source_path().exists() {
+            let mut repo_builder = RepoBuilder::new();
+            repo_builder.branch(&revision.revision);
 
-    if !revision.source_path().exists() {
-        let mut repo_builder = RepoBuilder::new();
-        repo_builder.branch(&revision.revision);
+            let repo_path = revision_path.join("source");
+            let repo = match repo_builder.clone(&repository_url, &repo_path) {
+                Ok(repo) => Ok(repo),
+                Err(e) => Err(match e.code() {
+                    git2::ErrorCode::NotFound => Error::RevisionNotFound {
+                        repository: repository_url,
+                        revision: revision.revision.clone(),
+                    },
+                    _ => e.into(),
+                })
+            }?;
 
-        let repo_path = revision_path.join("source");
-        let repo = match repo_builder.clone(&repository_url, &repo_path) {
-            Ok(repo) => Ok(repo),
-            Err(e) => Err(match e.code() {
-                git2::ErrorCode::NotFound => Error::RevisionNotFound {
-                    repository: repository_url,
-                    revision: revision.revision.clone(),
-                },
-                _ => e.into(),
-            })
-        }?;
-
-        let submodules = repo.submodules()?;
-        for mut submodule in submodules {
-            submodule.update(true, None)?;
+            let submodules = repo.submodules()?;
+            for mut submodule in submodules {
+                submodule.update(true, None)?;
+            }
         }
-    }
 
-    Ok(revision)
+        Ok(revision)
+    }
 }
 
 impl Revision {
