@@ -1,6 +1,6 @@
 [package]
 name = "tvm-build"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Jared Roesch <jroesch@octoml.ai>"]
 edition = "2018"
 description = "A CLI and library for programmatically building TVM."
