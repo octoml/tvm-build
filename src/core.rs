@@ -1,14 +1,14 @@
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
+use cmake;
+use dirs;
 use git2::build::RepoBuilder;
 use thiserror::Error;
 use tracing::{self, info};
-use cmake;
-use dirs;
 
 use super::targets::Target;
 
-const TVM_REPO: &'static str = "https://github.com/apache/incubator-tvm";
+const TVM_REPO: &'static str = "https://github.com/apache/tvm";
 const DEFAULT_BRANCH: &'static str = "main";
 
 #[derive(Debug, Error)]
@@ -20,7 +20,10 @@ pub enum Error {
     #[error("the directory does not exist: {0}")]
     DirectoryNotFound(String),
     #[error("the requested revision ({revision}) and repository ({repository}) combination does not exist.")]
-    RevisionNotFound { revision: String, repository: String, },
+    RevisionNotFound {
+        revision: String,
+        repository: String,
+    },
 }
 
 #[derive(Debug)]
@@ -33,7 +36,7 @@ pub struct BuildConfig {
     pub clean: bool,
 }
 
-impl std::default::Default for BuildConfig  {
+impl std::default::Default for BuildConfig {
     fn default() -> BuildConfig {
         BuildConfig {
             repository: None,
@@ -47,11 +50,11 @@ impl std::default::Default for BuildConfig  {
 }
 
 pub struct Revision {
-    revision: String
+    revision: String,
 }
 
 // convert to lazy<T>?
-fn tvm_build_directory() -> PathBuf {
+pub(crate) fn tvm_build_directory() -> PathBuf {
     let home_dir = dirs::home_dir().expect("requires a home directory");
     home_dir.join(".tvm_build")
 }
@@ -60,8 +63,7 @@ impl BuildConfig {
     // TODO: split per revision
     pub fn get_revision(&self) -> Result<Revision, Error> {
         info!("tvm_build::build");
-        let repository_url =
-            self.repository.clone().unwrap_or(TVM_REPO.into());
+        let repository_url = self.repository.clone().unwrap_or(TVM_REPO.into());
 
         let branch = self.branch.clone().unwrap_or(DEFAULT_BRANCH.into());
         let revision = Revision::new(branch);
@@ -69,9 +71,7 @@ impl BuildConfig {
         let revision_path = match &self.repository_path {
             Some(path) => std::path::Path::new(&path).into(),
             // todo: check that the provided path exists
-            None => {
-                revision.path()
-            }
+            None => revision.path(),
         };
 
         // If a user specifies the repository directory we assume we
@@ -84,7 +84,7 @@ impl BuildConfig {
         if !revision.source_path().exists() {
             let mut repo_builder = RepoBuilder::new();
             repo_builder.branch(&revision.revision);
-
+            println!("{}", repository_url);
             let repo_path = revision_path.join("source");
             let repo = match repo_builder.clone(&repository_url, &repo_path) {
                 Ok(repo) => Ok(repo),
@@ -94,9 +94,9 @@ impl BuildConfig {
                         revision: revision.revision.clone(),
                     },
                     _ => e.into(),
-                })
+                }),
             }?;
-
+            // todo(@jroesch): key build repos by sha? right now branch alone potentially conflicts.
             let submodules = repo.submodules()?;
             for mut submodule in submodules {
                 submodule.update(true, None)?;
@@ -130,17 +130,16 @@ impl Revision {
 
         if !build_path.exists() {
             std::fs::create_dir_all(build_path.clone())?;
-                // .map_err
-                // Err(err) =>
-                // .context(format!("the build directory does not exist: {:?}", build_path))?;
+            // .map_err
+            // Err(err) =>
+            // .context(format!("the build directory does not exist: {:?}", build_path))?;
         }
 
-        let mut cmake_config =
-            cmake::Config::new(source_path.clone());
+        let mut cmake_config = cmake::Config::new(source_path.clone());
 
         cmake_config
-                .generator("Unix Makefiles")
-                .out_dir(build_path.clone())
+            .generator("Unix Makefiles")
+            .out_dir(build_path.clone())
             .target(&target.target_str)
             .host(&target.host)
             .profile("Debug");
@@ -149,8 +148,7 @@ impl Revision {
             cmake_config.very_verbose(true);
         }
 
-        cmake_config
-            .build();
+        cmake_config.build();
 
         Ok(())
     }

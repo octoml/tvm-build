@@ -1,6 +1,6 @@
-use tvm_build::{build, BuildConfig};
-use tracing_subscriber;
 use structopt::StructOpt;
+use tracing_subscriber;
+use tvm_build::{self, build, BuildConfig};
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -22,14 +22,21 @@ struct UninstallCommand {
 }
 
 #[derive(StructOpt, Debug)]
-#[structopt(about = "A CLI for maintaining TVM installations.")]
-enum TVMBuildArgs {
-    /// Install a revision of TVM locally.
-    Install(InstallCommand),
-    /// Remove a revision of TVM.
-    Uninstall(UninstallCommand),
+#[structopt()]
+struct VersionCommand {
+    revision: String,
 }
 
+#[derive(StructOpt, Debug)]
+#[structopt(about = "A CLI for maintaining TVM installations.")]
+enum TVMBuildArgs {
+    /// Install a revision of TVM on your machine.
+    Install(InstallCommand),
+    /// Remove a revision of TVM on your machine.
+    Uninstall(UninstallCommand),
+    /// Get the configuration of the version.
+    VersionConfig(VersionCommand),
+}
 
 fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
@@ -44,9 +51,15 @@ fn main() -> anyhow::Result<()> {
             config.verbose = install_cmd.verbose;
             build(config)?;
             Ok(())
-        },
-        _ => {
-            panic!("Command not yet supported")
+        }
+        TVMBuildArgs::Uninstall(uninstall_cmd) => {
+            tvm_build::uninstall(uninstall_cmd.revision)?;
+            Ok(())
+        }
+        TVMBuildArgs::VersionConfig(version_cmd) => {
+            let config = tvm_build::version_config(version_cmd.revision)?;
+            println!("{}", serde_json::to_string(&config).unwrap());
+            Ok(())
         }
     }
 }
