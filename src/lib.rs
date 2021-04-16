@@ -13,7 +13,7 @@ pub use self::core::BuildConfig;
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionConfig {
-    tvm_python_path: PathBuf,
+    pub tvm_python_path: PathBuf,
 }
 
 /// Build TVM given a build configuration.
