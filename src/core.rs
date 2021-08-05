@@ -249,7 +249,7 @@ pub struct UserSettings {
     /// Whether to build static libtvm_runtime.a, the default is to build the dynamic
     /// version: libtvm_runtime.so.
     #[structopt(long)]
-    build_static_runtime: Option<bool>,
+    pub build_static_runtime: Option<bool>,
 }
 
 #[derive(Debug)]
