@@ -9,11 +9,11 @@ mod targets;
 
 use targets::local_target;
 
-pub use self::core::BuildConfig;
+pub use self::core::{BuildConfig, UserSettings, CMakeSetting};
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionConfig {
-    tvm_python_path: PathBuf,
+    pub tvm_python_path: PathBuf,
 }
 
 /// Build TVM given a build configuration.
