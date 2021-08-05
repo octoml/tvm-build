@@ -1,6 +1,6 @@
 use structopt::StructOpt;
 use tracing_subscriber;
-use tvm_build::{self, build, BuildConfig};
+use tvm_build::{self, build, BuildConfig, UserSettings};
 
 #[derive(StructOpt, Debug)]
 #[structopt()]
@@ -13,6 +13,8 @@ struct InstallCommand {
     clean: bool,
     #[structopt(short, long)]
     verbose: bool,
+    #[structopt(flatten)]
+    settings: UserSettings,
 }
 
 #[derive(StructOpt, Debug)]
@@ -49,6 +51,7 @@ fn main() -> anyhow::Result<()> {
             config.clean = install_cmd.clean;
             config.repository = install_cmd.repository;
             config.verbose = install_cmd.verbose;
+            config.settings = install_cmd.settings;
             build(config)?;
             Ok(())
         }
