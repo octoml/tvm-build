@@ -9,7 +9,7 @@ mod targets;
 
 use targets::local_target;
 
-pub use self::core::BuildConfig;
+pub use self::core::{BuildConfig, UserSettings};
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionConfig {
