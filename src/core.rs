@@ -592,7 +592,6 @@ impl Revision {
             .profile("Debug");
 
         for (key, value) in build_config.as_cmake_define_key_values() {
-            println!("setting {}={}", key, value);
             let _ = cmake_config.define(key, value);
         }
 
