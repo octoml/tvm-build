@@ -8,6 +8,9 @@ struct InstallCommand {
     revision: String,
     repository: Option<String>,
     #[structopt(short, long)]
+    /// The directory to build TVM in.
+    output_path: Option<String>,
+    #[structopt(short, long)]
     debug: bool,
     #[structopt(short, long)]
     clean: bool,
@@ -21,6 +24,9 @@ struct InstallCommand {
 #[structopt()]
 struct UninstallCommand {
     revision: String,
+    #[structopt(short, long)]
+    /// The directory that TVM was built in.
+    output_path: Option<String>
 }
 
 #[derive(StructOpt, Debug)]
@@ -51,12 +57,13 @@ fn main() -> anyhow::Result<()> {
             config.clean = install_cmd.clean;
             config.repository = install_cmd.repository;
             config.verbose = install_cmd.verbose;
+            config.output_path = install_cmd.output_path;
             config.settings = install_cmd.settings;
             build(config)?;
             Ok(())
         }
         TVMBuildArgs::Uninstall(uninstall_cmd) => {
-            tvm_build::uninstall(uninstall_cmd.revision)?;
+            tvm_build::uninstall(uninstall_cmd.revision, uninstall_cmd.output_path)?;
             Ok(())
         }
         TVMBuildArgs::VersionConfig(version_cmd) => {

@@ -280,7 +280,7 @@ impl std::default::Default for BuildConfig {
 // convert to lazy<T>?
 pub(crate) fn tvm_build_directory() -> PathBuf {
     let home_dir = dirs::home_dir().expect("requires a home directory");
-    home_dir.join(".tvm_build")
+    home_dir.join(format!(".tvm_build_{}", std::env::consts::ARCH))
 }
 
 impl BuildConfig {
@@ -290,7 +290,7 @@ impl BuildConfig {
         let repository_url = self.repository.clone().unwrap_or(TVM_REPO.into());
 
         let branch = self.branch.clone().unwrap_or(DEFAULT_BRANCH.into());
-        let revision = Revision::new(branch);
+        let revision = Revision::new(branch, self.output_path.clone());
 
         let revision_path = match &self.repository_path {
             Some(path) => std::path::Path::new(&path).into(),
@@ -552,15 +552,22 @@ impl BuildConfig {
 
 pub struct Revision {
     revision: String,
+    output_path: Option<String>,
 }
 
 impl Revision {
-    pub fn new(revision: String) -> Revision {
-        Revision { revision }
+    pub fn new(revision: String, output_path: Option<String>) -> Revision {
+        Revision { revision, output_path }
     }
 
     pub fn path(&self) -> PathBuf {
-        tvm_build_directory().join(&self.revision)
+        let path =
+            if let Some(path) = self.output_path.as_ref() {
+                PathBuf::from(path)
+            } else {
+                tvm_build_directory()
+            };
+        path.join(&self.revision)
     }
 
     pub fn source_path(&self) -> PathBuf {
