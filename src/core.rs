@@ -280,7 +280,7 @@ impl std::default::Default for BuildConfig {
 // convert to lazy<T>?
 pub(crate) fn tvm_build_directory() -> PathBuf {
     let home_dir = dirs::home_dir().expect("requires a home directory");
-    home_dir.join(".tvm_build")
+    home_dir.join(format!(".tvm_build_{}", std::env::consts::ARCH))
 }
 
 impl BuildConfig {
