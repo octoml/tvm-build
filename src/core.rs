@@ -1,4 +1,4 @@
-use std::{ascii::AsciiExt, path::PathBuf, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 use structopt::StructOpt;
 
 use cmake;
