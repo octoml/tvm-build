@@ -170,12 +170,9 @@ pub struct UserSettings {
     // tvm_option(USE_MKL "MKL root path when use MKL blas" OFF)
     #[structopt(long)]
     pub use_mkl: Option<CMakeSetting>,
-    /// "Build with MKLDNN"
+    /// Enable DNNL.
     #[structopt(long)]
-    pub use_mkldnn: Option<CMakeSetting>,
-    /// Enable MKLDNN (DNNL) codegen.
-    #[structopt(long)]
-    pub use_dnnl_codegen: Option<bool>,
+    pub use_dnnl: Option<bool>,
     // tvm_opt"Build with cuDNN" OFF)
     #[structopt(long)]
     pub use_cudnn: Option<bool>,
@@ -365,8 +362,7 @@ impl BuildConfig {
             use_byodt_posit,
             use_blas,
             use_mkl,
-            use_mkldnn,
-            use_dnnl_codegen,
+            use_dnnl,
             use_cudnn,
             use_cublas,
             use_thrust,
@@ -475,12 +471,9 @@ impl BuildConfig {
             use_mkl
                 .as_ref()
                 .map(|s| Self::setting_key_value("USE_MKL", s)),
-            use_mkldnn
+            use_dnnl
                 .as_ref()
-                .map(|s| Self::setting_key_value("USE_MKLDNN", s)),
-            use_dnnl_codegen
-                .as_ref()
-                .map(|s| Self::setting_key_value("USE_DNNL_CODEGEN", s)),
+                .map(|s| Self::setting_key_value("USE_DNNL", s)),
             use_cudnn
                 .as_ref()
                 .map(|s| Self::setting_key_value("USE_CUDNN", s)),
